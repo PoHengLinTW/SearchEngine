@@ -16,12 +16,14 @@
 #include "md5.h"
 #include "rmTag.h"
 #include "url.h"
+#include "test_time.h"
 
 #define MAX_FILE_LENGTH 50000
 
 std::ofstream output_file;
 char *m_pBuffer = NULL;
 size_t m_Size = 0;
+test_time *tm = new test_time();
 
 void* Realloc(void* ptr, size_t size)
 {
@@ -50,39 +52,10 @@ static size_t WriteMemoryCallback(char* ptr, size_t size, size_t nmemb)
 
 void write()
 {
+    output_file << "fetch time : " << tm->getCurrTime() << std::endl;
     output_file << "Size : " << m_Size << std::endl;
     output_file << "Content : " << std::endl << m_pBuffer << std::endl;
 }
-
-/*void retrieveUrl()
-{
-  char *href = m_pBuffer, url_link[256], *tmp;
-  std::ofstream url_file;
-  url_file.open("url.txt");
-  while(1)
-  {
-    int len = 0;
-    if ((href=strstr(href, "href=\"http"))==NULL)
-      break;
-    //std::cout << href << std::endl << std::endl;
-    tmp = href = href+strlen("href=\"");
-    while(1)
-    {
-      if (*tmp=='\"' || *tmp=='\0') {
-        *tmp = '\0';
-        break;
-      }
-      tmp++;
-      len++;
-    }
-    memcpy(url_link, href, len+1);
-    //strcpy(url_link, href);
-    *tmp = ' ';
-    //std::cout << url_link << std::endl;
-    url_file << url_link << std::endl;
-  }
-  url_file.close();
-}*/
 
 void retrieveBody()
 {
