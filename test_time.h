@@ -7,6 +7,8 @@ std::cout
     << tm_local->tm_min << ":"
     << tm_local->tm_sec << std::endl; 
 */
+#ifndef TEST_TIME
+#define TEST_TIME
 
 #include <iostream>
 #include <ctime>
@@ -40,3 +42,5 @@ class test_time
         ~test_time();
         char *getCurrTime();
 };
+
+#endif
