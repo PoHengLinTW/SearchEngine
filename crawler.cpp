@@ -13,7 +13,6 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/Exception.hpp>
 
-#include "md5.h"
 #include "rmTag.h"
 #include "url.h"
 #include "test_time.h"
@@ -25,67 +24,71 @@ char *m_pBuffer = NULL;
 size_t m_Size = 0;
 test_time *tm = new test_time();
 
-void* Realloc(void* ptr, size_t size)
+void *Realloc(void *ptr, size_t size)
 {
-  if(ptr)
-    return realloc(ptr, size);
-  else
-    return malloc(size);
+    if (ptr)
+        return realloc(ptr, size);
+    else
+        return malloc(size);
 };
 
 // Callback must be declared static, otherwise it won't link...
-static size_t WriteMemoryCallback(char* ptr, size_t size, size_t nmemb)
+static size_t WriteMemoryCallback(char *ptr, size_t size, size_t nmemb)
 {
-  // Calculate the real size of the incoming buffer
-  size_t realsize = size * nmemb;  
-  // (Re)Allocate memory for the buffer
-  m_pBuffer = (char*) Realloc(m_pBuffer, m_Size + realsize);
-  // Test if Buffer is initialized correctly & copy memory
-  if (m_pBuffer == NULL) {
-    realsize = 0;
-  }
-  memcpy(&(m_pBuffer[m_Size]), ptr, realsize);
-  m_Size += realsize;
-  // return the real size of the buffer...
-  return realsize;
+    // Calculate the real size of the incoming buffer
+    size_t realsize = size * nmemb;
+    // (Re)Allocate memory for the buffer
+    m_pBuffer = (char *)Realloc(m_pBuffer, m_Size + realsize);
+    // Test if Buffer is initialized correctly & copy memory
+    if (m_pBuffer == NULL)
+    {
+        realsize = 0;
+    }
+    memcpy(&(m_pBuffer[m_Size]), ptr, realsize);
+    m_Size += realsize;
+    // return the real size of the buffer...
+    return realsize;
 };
 
 void write()
 {
     output_file << "fetch time : " << tm->getCurrTime() << std::endl;
     output_file << "Size : " << m_Size << std::endl;
-    output_file << "Content : " << std::endl << m_pBuffer << std::endl;
+    output_file << "Content : " << std::endl
+                << m_pBuffer << std::endl;
 }
 
 void retrieveBody()
 {
-  char body[4096];
-  char *head = strstr(m_pBuffer, "<body");
-  char *tail = strstr(m_pBuffer, "</body>"), *tmp = head+strlen("<body");
-  int len = 0;
-  while(1) {
-    if (*tmp=='>')
-      break;
-    tmp++;
-  }
-  head = tmp++;
-  while(1) {
-    len++;
-    if (strncmp(tmp, tail, 7)==0)
-      break;
-    tmp++;
-  }
-  *tail = '\0';
-  std::cout << head << std::endl;
-  //memcpy(body, head, len+10);
-  //strcpy(body, head);
-  *tail = ' ';
-  // std::cout << body << std::endl;
+    char body[4096];
+    char *head = strstr(m_pBuffer, "<body");
+    char *tail = strstr(m_pBuffer, "</body>"), *tmp = head + strlen("<body");
+    int len = 0;
+    while (1)
+    {
+        if (*tmp == '>')
+            break;
+        tmp++;
+    }
+    head = tmp++;
+    while (1)
+    {
+        len++;
+        if (strncmp(tmp, tail, 7) == 0)
+            break;
+        tmp++;
+    }
+    *tail = '\0';
+    std::cout << head << std::endl;
+    //memcpy(body, head, len+10);
+    //strcpy(body, head);
+    *tail = ' ';
+    // std::cout << body << std::endl;
 }
 
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
 {
-    m_pBuffer = (char*) malloc(MAX_FILE_LENGTH * sizeof(char));
+    m_pBuffer = (char *)malloc(MAX_FILE_LENGTH * sizeof(char));
     output_file.open("test.txt");
     try
     {
@@ -106,27 +109,27 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         // perform
         myRequest.perform();
     }
-    catch ( curlpp::LogicError & e )
-	{
-		std::cout << e.what() << std::endl;
-	}
-	catch ( curlpp::RuntimeError & e )
-	{
-		std::cout << e.what() << std::endl;
-	}
-  if (m_Size==0)
-    return -1;
-  std::cout << "rm script" << std::endl;
-  rmTag(m_pBuffer , "script");
-  std::cout << "rm style" << std::endl;
-  rmTag(m_pBuffer, "style");
-  std::cout << "retrieve URL" << std::endl;
-  retrieveUrl(m_pBuffer);
-  std::cout << "retrieve body" << std::endl;
-  // retrieveBody();
-  std::cout << "write()" << std::endl;
-  write();
-  output_file.close();
-  free(m_pBuffer);
-  return 0;
+    catch (curlpp::LogicError &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+    catch (curlpp::RuntimeError &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+    if (m_Size == 0)
+        return -1;
+    std::cout << "rm script" << std::endl;
+    rmTag(m_pBuffer, "script");
+    std::cout << "rm style" << std::endl;
+    rmTag(m_pBuffer, "style");
+    std::cout << "retrieve URL" << std::endl;
+    retrieveUrl(m_pBuffer);
+    std::cout << "retrieve body" << std::endl;
+    // retrieveBody();
+    std::cout << "write()" << std::endl;
+    write();
+    output_file.close();
+    free(m_pBuffer);
+    return 0;
 }
