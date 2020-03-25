@@ -14,15 +14,16 @@
 #include <curlpp/Exception.hpp>
 
 #include "rmTag.h"
-#include "url.h"
+#include "test_url.h"
 #include "test_time.h"
 
 #define MAX_FILE_LENGTH 50000
 
-std::ofstream output_file;
-char *m_pBuffer = NULL;
-size_t m_Size = 0;
-test_time *tm = new test_time();
+static std::ofstream output_file;
+static char *m_pBuffer = NULL;
+static size_t m_Size = 0;
+static test_time *tm = new test_time();
+static test_url *tu = new test_url();
 
 void *Realloc(void *ptr, size_t size)
 {
@@ -124,7 +125,7 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
     std::cout << "rm style" << std::endl;
     rmTag(m_pBuffer, "style");
     std::cout << "retrieve URL" << std::endl;
-    retrieveUrl(m_pBuffer);
+    tu->retrieveUrl(m_pBuffer);
     std::cout << "retrieve body" << std::endl;
     // retrieveBody();
     std::cout << "write()" << std::endl;
