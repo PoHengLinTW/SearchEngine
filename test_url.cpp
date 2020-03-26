@@ -5,51 +5,56 @@
 #include "test_url.h"
 #include "md5.h"
 
-#define seencnt 1000
+#define max_seen_cnt 1000
 
 test_url::test_url(/* args */)
 {
-    // buf = new std::string[seencnt];
+    buf = new std::string[max_seen_cnt];
     cnt = 0;
-    // seen.open("seenDB.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-    url.open("urlDB.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+    seen.open("seenDB.txt", std::fstream::in);
+    url.open("urlDB.txt", std::fstream::out | std::fstream::app);
     /* read file to buf and then close file */
-    /*while (std::getline(seen, buf[cnt])) {
-        cnt++;
-    }*/
+    if (seen) {
+        while (std::getline(seen, buf[cnt])) {
+            if (cnt == max_seen_cnt-1) {
+                std::cerr << "cnt reach max_seen_cnt in reading file" << std::endl;
+                break;
+            }
+            cnt++;
+        }
+    }
+    seen.close();
 }
 
 test_url::~test_url()
 {
-    // seen.close();
+    seen.open("seenDB.txt", std::fstream::out);
+    for (int i=0; i<=cnt; i++) 
+    {
+        seen << buf[i] << std::endl;
+    }
+    seen.close();
     url.close();
-    // free(buf);
+    // delete buf;
 }
 
 bool test_url::check_seen (std::string check_md5)
 {
-    std::string tmp;
-    cnt = 0;
     //std::ifstream seen_rw;
-    seen_r.open("seenDB.txt", std::fstream::in);
-    while (std::getline(seen_r, tmp)) {
-        cnt++;
-        if (tmp.compare(check_md5)==0) { // seen
-            seen_r.close();
-            return false;
-        }
-    }
-    seen_r.close();
-    // not seen
-    seen_w.open("seenDB.txt", std::fstream::out | std::fstream::app);
-    std::cout << check_md5 << std::endl;
-    seen_w << check_md5 << std::endl;
-    seen_w.close();
-    /*for (int i=0; i < cnt; i++)
+    for (int i=0; i<=cnt; i++)
     {
-        if(buf[i].compare(check_md5)==0) //seen
+        if (buf[i].compare(check_md5)==0) //seen
             return false;
-    }*/
+    }
+
+    // not seen
+    if (cnt >= max_seen_cnt) { // exceed the limit
+        std::cerr << "cnt reach max_seen_cnt in adding md5 to buffer" << std::endl;
+        return false;
+    }
+    else { // if buf[0] & buf[1] have data, cnt is 2 => new data should store in buf[2] & cnt will be 3
+        buf[cnt++] = check_md5; 
+    }
     return true;
 }
 
@@ -78,8 +83,6 @@ void test_url::retrieveUrl(char *m_pBuffer)
         std::string stmp(url_link);
         std::string md5tmp = md5(stmp);
         if (check_seen(md5tmp)) { // true -> not seen
-            // seen << md5tmp << std::endl;
-            // std::cout << md5tmp << std::endl;
             url << stmp << std::endl;
         }
         // seen

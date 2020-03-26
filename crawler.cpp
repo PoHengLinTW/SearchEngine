@@ -131,6 +131,10 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
     std::cout << "write()" << std::endl;
     write();
     output_file.close();
+    std::cout << "delete tu" << std::endl;
+    delete tu;
+    std::cout << "delete tm" << std::endl;
+    delete tm;
     free(m_pBuffer);
     return 0;
 }

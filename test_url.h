@@ -7,8 +7,8 @@
 class test_url
 {
     private:
-        std::ifstream seen_r;
-        std::ofstream seen_w;
+        std::fstream seen;
+        //std::ofstream seen_w;
         std::fstream url;
         std::string *buf;
         int cnt;
