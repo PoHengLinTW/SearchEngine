@@ -10,13 +10,17 @@ class test_url
         std::fstream seen;
         //std::ofstream seen_w;
         std::fstream url;
-        std::string *buf;
-        int cnt;
-        bool check_seen(std::string);
+        std::string *md5_buf;
+        std::string *url_buf;
+        int md5_cnt;
+        int url_cnt;
+        int curr_url;
+        bool check_seen(std::string, std::string);
     public:
         test_url(/* args */);
         ~test_url();
         void retrieveUrl(char *);
+        std::string getTopUrl();
 };
 
 #endif
