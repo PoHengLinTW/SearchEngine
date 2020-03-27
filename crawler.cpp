@@ -18,6 +18,7 @@
 #include "test_time.h"
 
 #define MAX_FILE_LENGTH 50000
+#define MAX_CRAWL_LIMIT 10
 
 static std::ofstream output_file;
 static char *m_pBuffer = NULL;
@@ -90,46 +91,51 @@ void retrieveBody()
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
 {
     m_pBuffer = (char *)malloc(MAX_FILE_LENGTH * sizeof(char));
-    output_file.open("test.txt");
-    try
+    output_file.open("test.txt", std::fstream::out || std::fstream::app);
+    for (int i=0; i<MAX_CRAWL_LIMIT; i++)
     {
-        // initial process
-        curlpp::Cleanup myCleanup;
-        curlpp::Easy myRequest;
+        memset(m_pBuffer, '\0', sizeof(m_pBuffer));
+        std::string curr_url = tu->getTopUrl();
+        try
+        {
+            // initial process
+            curlpp::Cleanup myCleanup;
+            curlpp::Easy myRequest;
 
-        // create curl options
-        curlpp::options::Url myUrl(std::string("https://star.ettoday.net/news/718757"));
-        curlpp::types::WriteFunctionFunctor functor(WriteMemoryCallback);
-        curlpp::options::WriteFunction *write_func = new curlpp::options::WriteFunction(functor);
+            // create curl options
+            curlpp::options::Url myUrl(curr_url);//std::string("https://star.ettoday.net/news/718757"));
+            curlpp::types::WriteFunctionFunctor functor(WriteMemoryCallback);
+            curlpp::options::WriteFunction *write_func = new curlpp::options::WriteFunction(functor);
 
-        // bind options
-        myRequest.setOpt(write_func);
-        myRequest.setOpt(myUrl);
-        // myRequest.setOpt(new curlpp::options::Verbose(true));
+            // bind options
+            myRequest.setOpt(write_func);
+            myRequest.setOpt(myUrl);
+            // myRequest.setOpt(new curlpp::options::Verbose(true));
 
-        // perform
-        myRequest.perform();
+            // perform
+            myRequest.perform();
+        }
+        catch (curlpp::LogicError &e)
+        {
+            std::cout << e.what() << std::endl;
+        }
+        catch (curlpp::RuntimeError &e)
+        {
+            std::cout << e.what() << std::endl;
+        }
+        if (m_Size == 0)
+            return -1;
+        std::cout << "rm script" << std::endl;
+        rmTag(m_pBuffer, "script");
+        std::cout << "rm style" << std::endl;
+        rmTag(m_pBuffer, "style");
+        std::cout << "retrieve URL" << std::endl;
+        tu->retrieveUrl(m_pBuffer);
+        std::cout << "retrieve body" << std::endl;
+        // retrieveBody();
+        std::cout << "write()" << std::endl;
+        write();
     }
-    catch (curlpp::LogicError &e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-    catch (curlpp::RuntimeError &e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-    if (m_Size == 0)
-        return -1;
-    std::cout << "rm script" << std::endl;
-    rmTag(m_pBuffer, "script");
-    std::cout << "rm style" << std::endl;
-    rmTag(m_pBuffer, "style");
-    std::cout << "retrieve URL" << std::endl;
-    tu->retrieveUrl(m_pBuffer);
-    std::cout << "retrieve body" << std::endl;
-    // retrieveBody();
-    std::cout << "write()" << std::endl;
-    write();
     output_file.close();
     std::cout << "delete tu" << std::endl;
     delete tu;
