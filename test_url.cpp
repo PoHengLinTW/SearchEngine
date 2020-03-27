@@ -98,11 +98,11 @@ void test_url::retrieveUrl(char *m_pBuffer)
         int len = 0;
         if ((href = strstr(href, "href=\"http")) == NULL)
             break;
-        //std::cout << href << std::endl << std::endl;
+        // std::cout << href << std::endl << std::endl;
         tmp = href = href + strlen("href=\"");
         while (1)
         {
-            if (*tmp == '\"' || *tmp == '\0')
+            if (*tmp=='\"' || *tmp=='\0' || *tmp=='<' || *tmp=='>' || *tmp==' ')
             {
                 *tmp = '\0';
                 break;
@@ -110,7 +110,9 @@ void test_url::retrieveUrl(char *m_pBuffer)
             tmp++;
             len++;
         }
+        std::cout << "memcpy" << std::endl;
         memcpy(url_link, href, len + 1); // don't use strcpy
+        std::cout << url_link << std::endl;
         *tmp = ' ';
         std::string stmp(url_link);
         std::string md5tmp = md5(stmp);

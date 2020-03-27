@@ -46,6 +46,7 @@ static size_t WriteMemoryCallback(char *ptr, size_t size, size_t nmemb)
     {
         realsize = 0;
     }
+    //memset(&(m_pBuffer[m_Size]), '\0', realsize);
     memcpy(&(m_pBuffer[m_Size]), ptr, realsize);
     m_Size += realsize;
     // return the real size of the buffer...
@@ -90,11 +91,11 @@ void retrieveBody()
 
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
 {
-    m_pBuffer = (char *)malloc(MAX_FILE_LENGTH * sizeof(char));
+    //m_pBuffer = (char *)malloc(MAX_FILE_LENGTH * sizeof(char));
     output_file.open("test.txt", std::fstream::out || std::fstream::app);
     for (int i=0; i<MAX_CRAWL_LIMIT; i++)
     {
-        memset(m_pBuffer, '\0', sizeof(m_pBuffer));
+        //memset(m_pBuffer, '\0', MAX_FILE_LENGTH * sizeof(char));
         std::string curr_url = tu->getTopUrl();
         try
         {
@@ -129,12 +130,13 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         rmTag(m_pBuffer, "script");
         std::cout << "rm style" << std::endl;
         rmTag(m_pBuffer, "style");
+        std::cout << "write()" << std::endl;
+        write();
         std::cout << "retrieve URL" << std::endl;
         tu->retrieveUrl(m_pBuffer);
         std::cout << "retrieve body" << std::endl;
         // retrieveBody();
-        std::cout << "write()" << std::endl;
-        write();
+        
     }
     output_file.close();
     std::cout << "delete tu" << std::endl;
