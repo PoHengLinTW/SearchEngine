@@ -18,9 +18,9 @@
 #include "test_time.h"
 
 #define MAX_FILE_LENGTH 50000
-#define MAX_CRAWL_LIMIT 10
+#define MAX_CRAWL_LIMIT 100
 
-static std::ofstream output_file;
+static std::fstream output_file;
 static char *m_pBuffer = NULL;
 static size_t m_Size = 0;
 static test_time *tm = new test_time();
@@ -91,11 +91,12 @@ void retrieveBody()
 
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
 {
-    //m_pBuffer = (char *)malloc(MAX_FILE_LENGTH * sizeof(char));
-    output_file.open("test.txt", std::fstream::out || std::fstream::app);
+    output_file.open("test.txt", std::fstream::out | std::fstream::app);
+
+    int crawl_cnt=0;
+
     for (int i=0; i<MAX_CRAWL_LIMIT; i++)
     {
-        //memset(m_pBuffer, '\0', MAX_FILE_LENGTH * sizeof(char));
         std::string curr_url = tu->getTopUrl();
         try
         {
@@ -118,14 +119,25 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         }
         catch (curlpp::LogicError &e)
         {
-            std::cout << e.what() << std::endl;
+            /* 
+             * writing failed crawled url info
+             * format: md5 url reason
+             */
+            tu->addfailedUrl(curr_url, std::string(e.what()));
+            continue;
         }
         catch (curlpp::RuntimeError &e)
         {
-            std::cout << e.what() << std::endl;
+            /* 
+             * writing failed crawled url info
+             * format: md5 url reason
+             */
+            tu->addfailedUrl(curr_url, std::string(e.what()));
+            continue;
         }
         if (m_Size == 0)
             return -1;
+        std::cout << ++crawl_cnt << std::endl;
         std::cout << "rm script" << std::endl;
         rmTag(m_pBuffer, "script");
         std::cout << "rm style" << std::endl;

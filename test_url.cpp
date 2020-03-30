@@ -22,6 +22,7 @@ test_url::test_url(/* args */)
     curr_url = 0;
     seen.open("seenDB.txt", std::fstream::in);
     url.open("urlDB.txt", std::fstream::in); // out | std::fstream::app);
+    url_failed.open("failDB.txt", std::fstream::out | std::fstream::app);
     /* read file to buf and then close file */
     if (seen) {
         while (std::getline(seen, md5_buf[md5_cnt])) {
@@ -60,6 +61,7 @@ test_url::~test_url()
     }
     seen.close();
     url.close();
+    url_failed.close();
     // delete buf;
 }
 
@@ -110,9 +112,9 @@ void test_url::retrieveUrl(char *m_pBuffer)
             tmp++;
             len++;
         }
-        std::cout << "memcpy" << std::endl;
+        //std::cout << "memcpy" << std::endl;
         memcpy(url_link, href, len + 1); // don't use strcpy
-        std::cout << url_link << std::endl;
+        //std::cout << url_link << std::endl;
         *tmp = ' ';
         std::string stmp(url_link);
         std::string md5tmp = md5(stmp);
@@ -120,6 +122,14 @@ void test_url::retrieveUrl(char *m_pBuffer)
         check_seen(md5tmp, stmp);
         // seen
     }
+}
+
+void test_url::addfailedUrl(std::string curr_url, std::string reason)
+{
+    url_failed 
+        << md5(curr_url) << " "
+        << curr_url << " "
+        << reason << std::endl;
 }
 
 std::string test_url::getTopUrl()

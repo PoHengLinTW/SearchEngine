@@ -10,6 +10,7 @@ class test_url
         std::fstream seen;
         //std::ofstream seen_w;
         std::fstream url;
+        std::fstream url_failed;
         std::string *md5_buf;
         std::string *url_buf;
         int md5_cnt;
@@ -20,6 +21,7 @@ class test_url
         test_url(/* args */);
         ~test_url();
         void retrieveUrl(char *);
+        void addfailedUrl(std::string, std::string);
         std::string getTopUrl();
 };
 
