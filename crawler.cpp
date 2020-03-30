@@ -135,8 +135,14 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
             tu->addfailedUrl(curr_url, std::string(e.what()));
             continue;
         }
+
+        /* crawling successfully */
+        tu->addcrawledUrl(curr_url);
+
+        /* no url to crawl */
         if (m_Size == 0)
             return -1;
+        
         std::cout << ++crawl_cnt << std::endl;
         std::cout << "rm script" << std::endl;
         rmTag(m_pBuffer, "script");
@@ -150,6 +156,7 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         // retrieveBody();
         
     }
+    
     output_file.close();
     std::cout << "delete tu" << std::endl;
     delete tu;

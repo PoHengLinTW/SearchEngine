@@ -15,26 +15,32 @@
 
 test_url::test_url(/* args */)
 {
+    /* initial */
     md5_buf = new std::string[max_seen_cnt];
-    url_buf = new std::string[max_crawl_cnt];
+    uncrawled_url_buf = new std::string[max_crawl_cnt];
+    seen_url_buf = new std::string[max_seen_cnt];
+
     md5_cnt = 0;
     url_cnt = 0;
     curr_url = 0;
-    seen.open("seenDB.txt", std::fstream::in);
-    url.open("urlDB.txt", std::fstream::in); // out | std::fstream::app);
-    url_failed.open("failDB.txt", std::fstream::out | std::fstream::app);
+    failed_cnt = 0;
+    crawled_cnt = 0;
+
+    seen_url.open("seen_urlDB.txt", std::fstream::in);
+    failed_url.open("failed_urlDB.txt", std::fstream::out | std::fstream::app);
+    crawled_url.open("crawled_urlDB.txt", std::fstream::out | std::fstream::app);
+    uncrawled_url.open("uncrawled_urlDB.txt", std::fstream::in); // out | std::fstream::app);
     /* read file to buf and then close file */
-    if (seen) {
-        while (std::getline(seen, md5_buf[md5_cnt])) {
-            if (md5_cnt == max_seen_cnt-1) {
-                std::cerr << "md5_cnt reach max_seen_cnt in reading file" << std::endl;
-                break;
-            }
+    if (seen_url) {
+        while(seen_url >> md5_buf[md5_cnt] >> seen_url_buf[md5_cnt])
+        {
+            std::cout << md5_buf[md5_cnt] << std::endl
+                << seen_url_buf[md5_cnt] << std::endl;
             md5_cnt++;
         }
     }
-    if (url) {
-        while (std::getline(url, url_buf[url_cnt]))
+    if (uncrawled_url) {
+        while (std::getline(uncrawled_url, uncrawled_url_buf[url_cnt]))
         {
             if (url_cnt == max_crawl_cnt-1) {
                 std::cerr << "url_cnt reach crawl in reading file" << std::endl;
@@ -43,25 +49,27 @@ test_url::test_url(/* args */)
             url_cnt++;
         }
     }
-    seen.close();
-    url.close();
+    seen_url.close();
+    uncrawled_url.close();
 }
 
 test_url::~test_url()
 {
-    seen.open("seenDB.txt", std::fstream::out);
+    seen_url.open("seen_urlDB.txt", std::fstream::out);
     for (int i=0; i<=md5_cnt; i++) 
     {
-        seen << md5_buf[i] << std::endl;
+        seen_url << md5_buf[i] << " "
+            << seen_url_buf[i] << std::endl;
     }
-    url.open("urlDB.txt", std::fstream::out);
-    for (int i=0; i<url_cnt; i++) 
+    uncrawled_url.open("uncrawled_urlDB.txt", std::fstream::out);
+    for (int i=curr_url; i<url_cnt; i++) 
     {
-        url << url_buf[i] << std::endl;
+        uncrawled_url << uncrawled_url_buf[i] << std::endl;
     }
-    seen.close();
-    url.close();
-    url_failed.close();
+    seen_url.close();
+    failed_url.close();
+    crawled_url.close();
+    uncrawled_url.close();
     // delete buf;
 }
 
@@ -86,8 +94,11 @@ bool test_url::check_seen (std::string check_md5, std::string check_url)
          * cnt is 2 => new data should store 
          * in buf[2] & cnt will be 3
          */
-        md5_buf[md5_cnt++] = check_md5; 
-        url_buf[url_cnt++] = check_url;
+        md5_buf[md5_cnt] = check_md5; 
+        seen_url_buf[md5_cnt] = check_url;
+        uncrawled_url_buf[url_cnt] = check_url;
+        md5_cnt += 1;
+        url_cnt += 1;
     }
     return true;
 }
@@ -126,13 +137,20 @@ void test_url::retrieveUrl(char *m_pBuffer)
 
 void test_url::addfailedUrl(std::string curr_url, std::string reason)
 {
-    url_failed 
+    failed_url
         << md5(curr_url) << " "
         << curr_url << " "
         << reason << std::endl;
 }
 
+void test_url::addcrawledUrl(std::string curr_url)
+{
+    crawled_url
+        << md5(curr_url) << " "
+        << curr_url << std::endl;
+}
+
 std::string test_url::getTopUrl()
 {
-    return url_buf[curr_url++];
+    return uncrawled_url_buf[curr_url++];
 }
