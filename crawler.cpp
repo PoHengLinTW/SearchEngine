@@ -1,12 +1,12 @@
 // ADD fetch time, success rate, fail rate
 
-// later IP
-
 #include <string>
 #include <cstring>
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -25,6 +25,8 @@ static char *m_pBuffer = NULL;
 static size_t m_Size = 0;
 static test_time *tm = new test_time();
 static test_url *tu = new test_url();
+static std::string curr_url;
+static std::string url_ip; /* ip for current url */
 
 void *Realloc(void *ptr, size_t size)
 {
@@ -55,10 +57,13 @@ static size_t WriteMemoryCallback(char *ptr, size_t size, size_t nmemb)
 
 void write()
 {
-    output_file << "fetch time : " << tm->getCurrTime() << std::endl;
-    output_file << "Size : " << m_Size << std::endl;
-    output_file << "Content : " << std::endl
-                << m_pBuffer << std::endl;
+    output_file 
+        << "fetch time: " << tm->getCurrTime() << std::endl
+        << "Size: " << m_Size << std::endl
+        << "Url:" << curr_url << std::endl
+        << "Ip:" << url_ip << std::endl
+        << "Content: " << std::endl
+            << m_pBuffer << std::endl;
 }
 
 void retrieveBody()
@@ -89,6 +94,41 @@ void retrieveBody()
     // std::cout << body << std::endl;
 }
 
+void getIpfromUrl()
+{
+    std::string tmp = curr_url;
+    size_t location;
+    if (curr_url.find("https://") != std::string::npos) {
+        /* erase https:// */
+        tmp.erase(0, 8);
+    }
+    else if (curr_url.find("http://") != std::string::npos) {
+        /* erase https:/ */
+        tmp.erase(0, 7);
+    }
+    else {
+        std::cerr << "url error when trying to get ip" << std::endl
+            << "url type is not https or http" << std::endl;
+        url_ip = "";
+        return;
+    }
+
+    /* remove the text after www.xxx.com includin '/' */
+    location = tmp.find("/");
+    if (location!=std::string::npos)
+        tmp.erase(tmp.begin()+location, tmp.end());
+
+    /* retrieve ip from url */
+    hostent *record = gethostbyname(tmp.c_str());
+    if (!record) {
+        std::cerr << "not found record" << std::endl;
+        url_ip = "";
+        return;
+    }
+    in_addr *addr = (in_addr*) record->h_addr_list[0];
+    url_ip = inet_ntoa(*addr);
+}
+
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
 {
     output_file.open("test.txt", std::fstream::out | std::fstream::app);
@@ -97,7 +137,9 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
 
     for (int i=0; i<MAX_CRAWL_LIMIT; i++)
     {
-        std::string curr_url = tu->getTopUrl();
+        /* get next url from uncrawled DB*/
+        curr_url = tu->getTopUrl();
+
         try
         {
             // initial process
@@ -148,6 +190,8 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         rmTag(m_pBuffer, "script");
         std::cout << "rm style" << std::endl;
         rmTag(m_pBuffer, "style");
+        
+        getIpfromUrl();
         std::cout << "write()" << std::endl;
         write();
         std::cout << "retrieve URL" << std::endl;
