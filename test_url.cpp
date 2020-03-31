@@ -6,12 +6,12 @@
 #include "md5.h"
 
 #define max_seen_cnt 10000
+#define max_crawl_cnt 1000
 
 /* max_crawl_cnt should be equal to MAX_CRAWL_LIMIT 
  * in crawler.cpp. Maybe it will be implenmented when
  * I create console system
  */
-#define max_crawl_cnt 1000
 
 test_url::test_url(/* args */)
 {
@@ -34,9 +34,11 @@ test_url::test_url(/* args */)
     if (seen_url) {
         while(seen_url >> md5_buf[md5_cnt] >> seen_url_buf[md5_cnt])
         {
-            std::cout << md5_buf[md5_cnt] << std::endl
-                << seen_url_buf[md5_cnt] << std::endl;
             md5_cnt++;
+            if (md5_cnt >= max_seen_cnt) {
+                std::cerr << "seen_cnt reach max limit in reading file" << std::endl;
+                break;
+            }
         }
     }
     if (uncrawled_url) {
@@ -75,7 +77,6 @@ test_url::~test_url()
 
 bool test_url::check_seen (std::string check_md5, std::string check_url)
 {
-    //std::ifstream seen_rw;
     for (int i=0; i<=md5_cnt; i++)
     {
         /* seen */
@@ -111,7 +112,7 @@ void test_url::retrieveUrl(char *m_pBuffer)
         int len = 0;
         if ((href = strstr(href, "href=\"http")) == NULL)
             break;
-        // std::cout << href << std::endl << std::endl;
+
         tmp = href = href + strlen("href=\"");
         while (1)
         {
@@ -123,9 +124,8 @@ void test_url::retrieveUrl(char *m_pBuffer)
             tmp++;
             len++;
         }
-        //std::cout << "memcpy" << std::endl;
+
         memcpy(url_link, href, len + 1); // don't use strcpy
-        //std::cout << url_link << std::endl;
         *tmp = ' ';
         std::string stmp(url_link);
         std::string md5tmp = md5(stmp);
