@@ -18,7 +18,10 @@
 #include "test_time.h"
 
 #define MAX_FILE_LENGTH 50000
-#define MAX_CRAWL_LIMIT 100
+/* extern variable */
+int MAX_CRAWL_LIMIT = 1000;
+int MAX_SEEN_CNT = 10000;
+bool stop_flag = false;
 
 static std::fstream output_file;
 static char *m_pBuffer = NULL;
@@ -66,34 +69,6 @@ void write()
             << m_pBuffer << std::endl;
 }
 
-void retrieveBody()
-{
-    char body[4096];
-    char *head = strstr(m_pBuffer, "<body");
-    char *tail = strstr(m_pBuffer, "</body>"), *tmp = head + strlen("<body");
-    int len = 0;
-    while (1)
-    {
-        if (*tmp == '>')
-            break;
-        tmp++;
-    }
-    head = tmp++;
-    while (1)
-    {
-        len++;
-        if (strncmp(tmp, tail, 7) == 0)
-            break;
-        tmp++;
-    }
-    *tail = '\0';
-    std::cout << head << std::endl;
-    //memcpy(body, head, len+10);
-    //strcpy(body, head);
-    *tail = ' ';
-    // std::cout << body << std::endl;
-}
-
 void getIpfromUrl()
 {
     std::string tmp = curr_url;
@@ -127,6 +102,21 @@ void getIpfromUrl()
     }
     in_addr *addr = (in_addr*) record->h_addr_list[0];
     url_ip = inet_ntoa(*addr);
+}
+
+void dashboard()
+{
+    /* Begin time
+     * Last time
+     * Total crawled cnt
+     * Crawled cnt in last hour 
+     * Crawled cnt in last day
+     * Failure cnt and rate
+     * Number in queue (uncrawled)
+     * Average site size
+     * Average url length
+     * Average link cnt
+     */
 }
 
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
@@ -184,6 +174,9 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         /* no url to crawl */
         if (m_Size == 0)
             return -1;
+        
+        if (stop_flag) /* stop signal activated*/
+            break;
         
         std::cout << ++crawl_cnt << std::endl;
         std::cout << "rm script" << std::endl;

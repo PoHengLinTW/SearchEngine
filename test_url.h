@@ -27,6 +27,9 @@ class test_url
         void addfailedUrl(std::string, std::string);
         void addcrawledUrl(std::string);
         std::string getTopUrl();
+        int getFailedCnt();
+        int getCrawledCnt();
+        int getUncrawledCnt(); /* url_cnt - curr_url */
 };
 
 #endif

@@ -5,8 +5,9 @@
 #include "test_url.h"
 #include "md5.h"
 
-#define max_seen_cnt 10000
-#define max_crawl_cnt 1000
+extern int MAX_SEEN_CNT;
+extern int MAX_CRAWL_LIMIT;
+extern bool stop_flag;
 
 /* max_crawl_cnt should be equal to MAX_CRAWL_LIMIT 
  * in crawler.cpp. Maybe it will be implenmented when
@@ -16,9 +17,9 @@
 test_url::test_url(/* args */)
 {
     /* initial */
-    md5_buf = new std::string[max_seen_cnt];
-    uncrawled_url_buf = new std::string[max_crawl_cnt];
-    seen_url_buf = new std::string[max_seen_cnt];
+    md5_buf = new std::string[MAX_SEEN_CNT];
+    uncrawled_url_buf = new std::string[MAX_CRAWL_LIMIT];
+    seen_url_buf = new std::string[MAX_SEEN_CNT];
 
     md5_cnt = 0;
     url_cnt = 0;
@@ -35,7 +36,7 @@ test_url::test_url(/* args */)
         while(seen_url >> md5_buf[md5_cnt] >> seen_url_buf[md5_cnt])
         {
             md5_cnt++;
-            if (md5_cnt >= max_seen_cnt) {
+            if (md5_cnt >= MAX_SEEN_CNT) {
                 std::cerr << "seen_cnt reach max limit in reading file" << std::endl;
                 break;
             }
@@ -44,7 +45,7 @@ test_url::test_url(/* args */)
     if (uncrawled_url) {
         while (std::getline(uncrawled_url, uncrawled_url_buf[url_cnt]))
         {
-            if (url_cnt == max_crawl_cnt-1) {
+            if (url_cnt >= MAX_CRAWL_LIMIT) {
                 std::cerr << "url_cnt reach crawl in reading file" << std::endl;
                 break;
             }
@@ -86,8 +87,10 @@ bool test_url::check_seen (std::string check_md5, std::string check_url)
 
     /* not seen */
     /* exceed the limit */
-    if (md5_cnt >= max_seen_cnt || url_cnt >= max_crawl_cnt) { 
-        std::cerr << "cnt reach max_seen_cnt in adding md5 to buffer" << std::endl;
+    if (md5_cnt >= MAX_SEEN_CNT || url_cnt >= MAX_CRAWL_LIMIT) { 
+        std::cerr << "cnt reach MAX_SEEN_CNT in adding md5 to buffer" << std::endl;
+        /* send stop crawling signal */
+        stop_flag = true;
         return false;
     }
     else { 
@@ -137,6 +140,7 @@ void test_url::retrieveUrl(char *m_pBuffer)
 
 void test_url::addfailedUrl(std::string curr_url, std::string reason)
 {
+    failed_cnt += 1;
     failed_url
         << md5(curr_url) << " "
         << curr_url << " "
@@ -145,6 +149,7 @@ void test_url::addfailedUrl(std::string curr_url, std::string reason)
 
 void test_url::addcrawledUrl(std::string curr_url)
 {
+    crawled_cnt += 1;
     crawled_url
         << md5(curr_url) << " "
         << curr_url << std::endl;
@@ -153,4 +158,16 @@ void test_url::addcrawledUrl(std::string curr_url)
 std::string test_url::getTopUrl()
 {
     return uncrawled_url_buf[curr_url++];
+}
+
+int test_url::getFailedCnt(){
+    return failed_cnt;
+}
+
+int test_url::getCrawledCnt(){
+    return crawled_cnt;
+}
+
+int test_url::getUncrawledCnt(){
+    return url_cnt - curr_url;
 }
