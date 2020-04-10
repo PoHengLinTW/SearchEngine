@@ -30,6 +30,9 @@ int MAX_CRAWL_LIMIT = 1000;
 int MAX_SEEN_CNT = 10000;
 bool stop_flag = false;
 
+/* for debug */
+bool debug_flag = false;
+
 static std::fstream output_file;
 static char *m_pBuffer = NULL;
 static size_t m_Size = 0;
@@ -221,20 +224,36 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         if (stop_flag) /* stop signal activated*/
             break;
         
-        //std::cout << ++crawl_cnt << std::endl;
-        //std::cout << "rm script" << std::endl;
+        if (debug_flag) {
+            std::cout << ++crawl_cnt << std::endl;
+            std::cout << "rm script" << std::endl;
+        }
         rmTag(m_pBuffer, "script");
-        //std::cout << "rm style" << std::endl;
+        
+        if (debug_flag)
+            std::cout << "rm style" << std::endl;
         rmTag(m_pBuffer, "style");
         
+        if (debug_flag)
+            std::cout << "Get ip from url" << std::endl;
         getIpfromUrl();
-        //std::cout << "write()" << std::endl;
-        write();
-        //std::cout << "retrieve URL" << std::endl;
+
+        if (debug_flag) {
+            std::cout << "write info to file" << std::endl;
+            write();
+        }
+
+        if (debug_flag)
+            std::cout << "retrieve URL" << std::endl;
         tu->retrieveUrl(m_pBuffer);
-        //std::cout << "retrieve body" << std::endl;
+
+        if (debug_flag)
+            std::cout << "retrieve body" << std::endl;
         // retrieveBody();
-        dashboard();
+
+        /* dashboard will show up only when not in debug mode */
+        if (!debug_flag)
+            dashboard();
     }
     
     output_file.close();
