@@ -1,12 +1,19 @@
-// ADD fetch time, success rate, fail rate
+// cython: bridge of python and C
+// ADD depth of roots
+// multithread -> using atomic
+// gumbo-parser
+
 
 #include <string>
 #include <cstring>
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -117,6 +124,42 @@ void dashboard()
      * Average url length
      * Average link cnt
      */
+    system("clear");
+    std::cout << "|" << std::string(83, '=') << "|" << std::endl;
+    std::cout 
+        << "|" << " Begin time         "
+        << "|" << " Last time          "
+        << "|" << " Total Crawled cnt  "
+        << "|" << " Failure cnt / rate "
+        << "|" << std::endl;
+    
+    std::cout << "|" << std::string(83, '-') << "|" << std::endl;
+
+    std::cout 
+        << "|" << std::setw(20) << tm->getStartTime() // Begin time
+        << "|" << std::setw(20) << tm->diff() // Last time
+        << "|" << std::setw(20) << tu->getCrawledCnt() // Total Crawled cnt
+        << "|" << std::setw(20) << tu->getFailedCnt() // Failure cnt / rate
+        << "|" << std::endl;
+
+    std::cout << "|" << std::string(83, '=') << "|" << std::endl;
+    std::cout
+        << "|" << " Number in queue    "
+        << "|" << " Average site size  "
+        << "|" << " Average url length "
+        << "|" << " Average link cnt   "
+        << "|" << std::endl;
+
+    std::cout << "|" << std::string(83, '-') << "|" << std::endl;
+    std::cout 
+        << "|" << std::setw(20) << tu->getUncrawledCnt() // Number in queue
+        << "|" << std::setw(20) << "0" // Average site size
+        << "|" << std::setw(20) << "0" // Average url length
+        << "|" << std::setw(20) << "0" // Average link cntt / rate
+        << "|" << std::endl;
+    
+    std::cout << "|" << std::string(83, '=') << "|" << std::endl;
+    sleep(1);
 }
 
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
@@ -178,20 +221,20 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         if (stop_flag) /* stop signal activated*/
             break;
         
-        std::cout << ++crawl_cnt << std::endl;
-        std::cout << "rm script" << std::endl;
+        //std::cout << ++crawl_cnt << std::endl;
+        //std::cout << "rm script" << std::endl;
         rmTag(m_pBuffer, "script");
-        std::cout << "rm style" << std::endl;
+        //std::cout << "rm style" << std::endl;
         rmTag(m_pBuffer, "style");
         
         getIpfromUrl();
-        std::cout << "write()" << std::endl;
+        //std::cout << "write()" << std::endl;
         write();
-        std::cout << "retrieve URL" << std::endl;
+        //std::cout << "retrieve URL" << std::endl;
         tu->retrieveUrl(m_pBuffer);
-        std::cout << "retrieve body" << std::endl;
+        //std::cout << "retrieve body" << std::endl;
         // retrieveBody();
-        
+        dashboard();
     }
     
     output_file.close();
