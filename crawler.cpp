@@ -40,6 +40,8 @@ static test_time *tm = new test_time();
 static test_url *tu = new test_url();
 static std::string curr_url;
 static std::string url_ip; /* ip for current url */
+static unsigned int total_site_size = 0;
+static unsigned int total_url_length = 0;
 
 void *Realloc(void *ptr, size_t size)
 {
@@ -128,41 +130,87 @@ void dashboard()
      * Average link cnt
      */
     system("clear");
-    std::cout << "|" << std::string(83, '=') << "|" << std::endl;
+
+    int len=125;
+
+    /* Row 1*/
+    std::cout << "|" << std::string(len, '=') << "|" << std::endl;
     std::cout 
         << "|" << " Begin time         "
+        << "|" << " Current time       "
         << "|" << " Last time          "
         << "|" << " Total Crawled cnt  "
         << "|" << " Failure cnt / rate "
+        << "|" << "                    "
         << "|" << std::endl;
     
-    std::cout << "|" << std::string(83, '-') << "|" << std::endl;
+    std::cout << "|" << std::string(len, '-') << "|" << std::endl;
 
     std::cout 
         << "|" << std::setw(20) << tm->getStartTime() // Begin time
-        << "|" << std::setw(20) << tm->diff() // Last time
+        << "|" << std::setw(20) << tm->getCurrTime() // Begin time
+        << "|" << std::setw(16) << tm->diff() << " sec" // Last time
         << "|" << std::setw(20) << tu->getCrawledCnt() // Total Crawled cnt
         << "|" << std::setw(20) << tu->getFailedCnt() // Failure cnt / rate
+        << "|" << std::setw(20) << ""
         << "|" << std::endl;
 
-    std::cout << "|" << std::string(83, '=') << "|" << std::endl;
+    /* Row 2 */
+    std::cout << "|" << std::string(len, '=') << "|" << std::endl;
     std::cout
         << "|" << " Number in queue    "
         << "|" << " Average site size  "
         << "|" << " Average url length "
         << "|" << " Average link cnt   "
+        << "|" << " Max Crawl Limit    "
+        << "|" << " Max Num in SeenDB  "
         << "|" << std::endl;
 
-    std::cout << "|" << std::string(83, '-') << "|" << std::endl;
+    std::cout << "|" << std::string(len, '-') << "|" << std::endl;
     std::cout 
         << "|" << std::setw(20) << tu->getUncrawledCnt() // Number in queue
-        << "|" << std::setw(20) << "0" // Average site size
-        << "|" << std::setw(20) << "0" // Average url length
+        << "|" << std::setw(20) << total_site_size/tu->getCrawledCnt() // Average site size
+        << "|" << std::setw(20) << total_url_length/tu->getCrawledCnt() // Average url length
         << "|" << std::setw(20) << "0" // Average link cntt / rate
+        << "|" << std::setw(20) << MAX_CRAWL_LIMIT // Max Crawl Limit
+        << "|" << std::setw(20) << MAX_SEEN_CNT // Max Num in SeenDB
         << "|" << std::endl;
     
-    std::cout << "|" << std::string(83, '=') << "|" << std::endl;
-    sleep(1);
+    /* Row 3 */
+    std::cout << "|" << std::string(len, '=') << "|" << std::endl;
+    std::cout
+        << "|" << std::setw(len) << " Current Url "
+        << "|" << std::endl;
+
+    std::cout << "|" << std::string(len, '-') << "|" << std::endl;
+    std::cout 
+        << "|" << std::setw(len) << curr_url // Current Url
+        
+        << "|" << std::endl;
+
+    /* Row 4 */
+    std::cout << "|" << std::string(len, '=') << "|" << std::endl;
+    std::cout
+        << "|" << " Current Ip         "
+        << "|" << " Current Site size  "
+        << "|" << " Distance from root "
+        << "|" << "                    "
+        << "|" << "                    "
+        << "|" << "                    "
+        << "|" << std::endl;
+
+    std::cout << "|" << std::string(len, '-') << "|" << std::endl;
+    std::cout
+        << "|" << std::setw(20) << url_ip // Current Ip
+        << "|" << std::setw(20) << m_Size // Current site size
+        << "|" << std::setw(20) << "0" // Distance from root
+        << "|" << std::setw(20) << ""
+        << "|" << std::setw(20) << ""
+        << "|" << std::setw(20) << ""
+        << "|" << std::endl;
+
+    std::cout << "|" << std::string(len, '=') << "|" << std::endl;
+    //sleep(1);
 }
 
 int main(int, char **) /* I/O for save data, using dataa batch to control I/O count */
@@ -220,6 +268,10 @@ int main(int, char **) /* I/O for save data, using dataa batch to control I/O co
         /* no url to crawl */
         if (m_Size == 0)
             return -1;
+        else {
+            total_site_size += m_Size;
+            total_url_length += curr_url.length();
+        }
         
         if (stop_flag) /* stop signal activated*/
             break;
