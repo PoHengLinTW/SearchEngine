@@ -35,12 +35,15 @@ class test_time
         /* data */
         char *curr_time;
         time_t init_time;
+        tm tm_start;
         tm *tm_local;
         void update();
     public:
         test_time(/* args */);
         ~test_time();
+        char *getStartTime();
         char *getCurrTime();
+        double diff();
 };
 
 #endif
